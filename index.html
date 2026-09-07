@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My GPS Tracker - Live Map</title>
+
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        .header {
+            background: #111827;
+            color: white;
+            padding: 16px 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .status {
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        .online {
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .offline {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        #map {
+            width: 100%;
+            height: 60vh;
+            min-height: 400px;
+        }
+
+        .dashboard {
+            padding: 15px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 7px;
+        }
+
+        .value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .coordinates {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 800px) {
+            .dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .coordinates {
+                grid-column: span 2;
+            }
+
+            #map {
+                height: 55vh;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .dashboard {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .card {
+                padding: 13px;
+            }
+
+            .value {
+                font-size: 17px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>📍 My GPS Tracker</h1>
+        <div class="status">
+            Vivo 1906:
+            <span id="connectionStatus" class="offline">
+                CONNECTING...
+            </span>
+        </div>
+    </div>
+
+    <!-- LIVE MAP -->
+    <div id="map"></div>
+
+    <!-- DASHBOARD -->
+    <div class="dashboard">
+
+        <div class="card">
+            <div class="label">📍 Latitude</div>
+            <div class="value" id="latitude">--</div>
+        </div>
+
+        <div class="card">
+            <div class="label">📍 Longitude</div>
+            <div class="value" id="longitude">--</div>
+        </div>
+
+        <div class="card">
+            <div class="label">🎯 Accuracy</div>
+            <div class="value" id="accuracy">--</div>
+        </div>
+
+        <div class="card">
+            <div class="label">🚗 Speed</div>
+            <div class="value" id="speed">--</div>
+        </div>
+
+        <div class="card">
+            <div class="label">⛰️ Altitude</div>
+            <div class="value" id="altitude">--</div>
+        </div>
+
+        <div class="card coordinates">
+            <div class="label">🕐 Last Update</div>
+            <div class="value" id="lastUpdate">--</div>
+        </div>
+
+    </div>
+
+
+    <!-- Leaflet JS -->
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+
+    <!-- Firebase -->
+    <script type="module">
+
+        import {
+            initializeApp
+        } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+
+        import {
+            getDatabase,
+            ref,
+            onValue
+        } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
+
+
+        // ==========================================
+        // FIREBASE CONFIG
+        // ==========================================
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwOW3medoyo_ny9B8NAPvEFmSc_zxGNaM",
+            authDomain: "my-gps-tracker-c92b1.firebaseapp.com",
+            databaseURL: "https://my-gps-tracker-c92b1-default-rtdb.firebaseio.com",
+            projectId: "my-gps-tracker-c92b1",
+            storageBucket: "my-gps-tracker-c92b1.firebasestorage.app",
+            messagingSenderId: "1055674375924",
+            appId: "1:1055674375924:web:76b016cda58cc8f69d48a1"
+        };
+
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+
+        const database = getDatabase(app);
+
+
+        // ==========================================
+        // MAP
+        // ==========================================
+
+        const map = L.map("map").setView([23.6098732, 72.3549045], 16);
+
+        L.tileLayer(
+            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                maxZoom: 19,
+                attribution:
+                    '&copy; OpenStreetMap contributors'
+            }
+        ).addTo(map);
+
+
+        // Marker
+        let marker = null;
+
+        // Accuracy circle
+        let accuracyCircle = null;
+
+        // First location received
+        let firstLocation = true;
+
+
+        // ==========================================
+        // FIREBASE LIVE LOCATION
+        // ==========================================
+
+        const trackerRef = ref(
+            database,
+            "trackers/vivo1906"
+        );
+
+
+        onValue(
+            trackerRef,
+            (snapshot) => {
+
+                const data = snapshot.val();
+
+                if (!data) {
+                    document.getElementById("connectionStatus").textContent =
+                        "NO DATA";
+
+                    return;
+                }
+
+
+                const latitude = Number(data.latitude);
+                const longitude = Number(data.longitude);
+                const accuracy = Number(data.accuracy || 0);
+                const speedMs = Number(data.speed || 0);
+                const altitude = Number(data.altitude || 0);
+                const timestamp = Number(data.timestamp || 0);
+
+
+                // ======================================
+                // UPDATE TEXT
+                // ======================================
+
+                document.getElementById("latitude").textContent =
+                    latitude.toFixed(6);
+
+                document.getElementById("longitude").textContent =
+                    longitude.toFixed(6);
+
+                document.getElementById("accuracy").textContent =
+                    accuracy.toFixed(1) + " m";
+
+                // m/s -> km/h
+                const speedKmh = speedMs * 3.6;
+
+                document.getElementById("speed").textContent =
+                    speedKmh.toFixed(1) + " km/h";
+
+                document.getElementById("altitude").textContent =
+                    altitude.toFixed(1) + " m";
+
+
+                // ======================================
+                // LAST UPDATE
+                // ======================================
+
+                const updateTime = new Date(timestamp);
+
+                document.getElementById("lastUpdate").textContent =
+                    updateTime.toLocaleString();
+
+
+                // ======================================
+                // ONLINE / OFFLINE
+                // ======================================
+
+                const age = Date.now() - timestamp;
+
+                const statusElement =
+                    document.getElementById("connectionStatus");
+
+                if (age < 90000) {
+
+                    statusElement.textContent = "● ONLINE";
+                    statusElement.className = "online";
+
+                } else {
+
+                    statusElement.textContent = "● OFFLINE";
+                    statusElement.className = "offline";
+                }
+
+
+                // ======================================
+                // UPDATE MARKER
+                // ======================================
+
+                if (!marker) {
+
+                    marker = L.marker([
+                        latitude,
+                        longitude
+                    ])
+                    .addTo(map);
+
+                    marker.bindPopup(
+                        "<b>📍 Vivo 1906</b><br>" +
+                        "GPS Tracker"
+                    );
+
+
+                } else {
+
+                    marker.setLatLng([
+                        latitude,
+                        longitude
+                    ]);
+                }
+
+
+                // ======================================
+                // ACCURACY CIRCLE
+                // ======================================
+
+                if (!accuracyCircle) {
+
+                    accuracyCircle = L.circle(
+                        [latitude, longitude],
+                        {
+                            radius: accuracy,
+                            weight: 2,
+                            fillOpacity: 0.15
+                        }
+                    ).addTo(map);
+
+                } else {
+
+                    accuracyCircle.setLatLng([
+                        latitude,
+                        longitude
+                    ]);
+
+                    accuracyCircle.setRadius(
+                        accuracy
+                    );
+                }
+
+
+                // ======================================
+                // CENTER MAP ON FIRST LOCATION
+                // ======================================
+
+                if (firstLocation) {
+
+                    map.setView(
+                        [latitude, longitude],
+                        17
+                    );
+
+                    firstLocation = false;
+                }
+
+            },
+
+            (error) => {
+
+                console.error(
+                    "Firebase error:",
+                    error
+                );
+
+                document.getElementById(
+                    "connectionStatus"
+                ).textContent = "ERROR";
+            }
+        );
+
+    </script>
+
+</body>
+</html>
