@@ -1,136 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>My GPS Tracker - Live Map</title>
+<title>My GPS Tracker</title>
 
-    <!-- Leaflet CSS -->
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<style>
+* {
+    box-sizing: border-box;
+}
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            color: #222;
-        }
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+}
 
-        .header {
-            background: #111827;
-            color: white;
-            padding: 16px 20px;
-        }
+#loginScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
 
-        .header h1 {
-            margin: 0;
-            font-size: 22px;
-        }
+.loginBox {
+    background: white;
+    width: 100%;
+    max-width: 400px;
+    padding: 35px 25px;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.12);
+}
 
-        .status {
-            margin-top: 5px;
-            font-size: 14px;
-        }
+.loginBox h1 {
+    margin-top: 0;
+}
 
-        .online {
-            color: #22c55e;
-            font-weight: bold;
-        }
+.loginBox p {
+    color: #666;
+}
 
-        .offline {
-            color: #ef4444;
-            font-weight: bold;
-        }
+#googleLogin {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
 
-        #map {
-            width: 100%;
-            height: 60vh;
-            min-height: 400px;
-        }
+#googleLogin:hover {
+    background: #f5f5f5;
+}
 
-        .dashboard {
-            padding: 15px;
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 12px;
-        }
+#mapScreen {
+    display: none;
+}
 
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
+.header {
+    background: #111827;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
 
-        .label {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 7px;
-        }
+.header h1 {
+    margin: 0;
+    font-size: 21px;
+}
 
-        .value {
-            font-size: 20px;
-            font-weight: bold;
-        }
+.userInfo {
+    font-size: 13px;
+    text-align: right;
+}
 
-        .coordinates {
-            grid-column: span 2;
-        }
+#logoutButton {
+    margin-top: 6px;
+    padding: 6px 12px;
+    border: 0;
+    border-radius: 7px;
+    cursor: pointer;
+}
 
-        @media (max-width: 800px) {
-            .dashboard {
-                grid-template-columns: repeat(2, 1fr);
-            }
+.status {
+    margin-top: 5px;
+    font-size: 14px;
+}
 
-            .coordinates {
-                grid-column: span 2;
-            }
+.online {
+    color: #22c55e;
+    font-weight: bold;
+}
 
-            #map {
-                height: 55vh;
-            }
-        }
+.offline {
+    color: #ef4444;
+    font-weight: bold;
+}
 
-        @media (max-width: 500px) {
-            .dashboard {
-                grid-template-columns: 1fr 1fr;
-            }
+#map {
+    width: 100%;
+    height: 60vh;
+    min-height: 400px;
+}
 
-            .card {
-                padding: 13px;
-            }
+.dashboard {
+    padding: 15px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+}
 
-            .value {
-                font-size: 17px;
-            }
-        }
-    </style>
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.label {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 7px;
+}
+
+.value {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.coordinates {
+    grid-column: span 2;
+}
+
+@media (max-width: 800px) {
+    .dashboard {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .coordinates {
+        grid-column: span 2;
+    }
+
+    #map {
+        height: 55vh;
+    }
+
+    .header {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 500px) {
+    .header {
+        display: block;
+    }
+
+    .userInfo {
+        text-align: left;
+        margin-top: 10px;
+    }
+
+    .dashboard {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .card {
+        padding: 13px;
+    }
+
+    .value {
+        font-size: 17px;
+    }
+}
+</style>
 </head>
 
 <body>
 
-    <div class="header">
+<!-- ================= LOGIN SCREEN ================= -->
+
+<div id="loginScreen">
+
+    <div class="loginBox">
+
         <h1>📍 My GPS Tracker</h1>
-        <div class="status">
-            Vivo 1906:
-            <span id="connectionStatus" class="offline">
-                CONNECTING...
-            </span>
-        </div>
+
+        <p>
+            Sign in to access your private live GPS map.
+        </p>
+
+        <button id="googleLogin">
+            🔐 Sign in with Google
+        </button>
+
+        <p id="loginError"></p>
+
     </div>
 
-    <!-- LIVE MAP -->
+</div>
+
+
+<!-- ================= MAP SCREEN ================= -->
+
+<div id="mapScreen">
+
+    <div class="header">
+
+        <div>
+            <h1>📍 My GPS Tracker</h1>
+
+            <div class="status">
+                Vivo 1906:
+                <span id="connectionStatus"
+                      class="offline">
+                    CONNECTING...
+                </span>
+            </div>
+        </div>
+
+        <div class="userInfo">
+
+            <div id="userEmail"></div>
+
+            <button id="logoutButton">
+                Logout
+            </button>
+
+        </div>
+
+    </div>
+
+
     <div id="map"></div>
 
-    <!-- DASHBOARD -->
+
     <div class="dashboard">
 
         <div class="card">
@@ -165,245 +279,454 @@
 
     </div>
 
-
-    <!-- Leaflet JS -->
-    <script
-        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-    </script>
+</div>
 
 
-    <!-- Firebase -->
-    <script type="module">
-
-        import {
-            initializeApp
-        } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-
-        import {
-            getDatabase,
-            ref,
-            onValue
-        } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 
-        // ==========================================
-        // FIREBASE CONFIG
-        // ==========================================
+<script type="module">
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwOW3medoyo_ny9B8NAPvEFmSc_zxGNaM",
-            authDomain: "my-gps-tracker-c92b1.firebaseapp.com",
-            databaseURL: "https://my-gps-tracker-c92b1-default-rtdb.firebaseio.com",
-            projectId: "my-gps-tracker-c92b1",
-            storageBucket: "my-gps-tracker-c92b1.firebasestorage.app",
-            messagingSenderId: "1055674375924",
-            appId: "1:1055674375924:web:76b016cda58cc8f69d48a1"
-        };
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 
+import {
+    getDatabase,
+    ref,
+    onValue
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-
-        const database = getDatabase(app);
-
-
-        // ==========================================
-        // MAP
-        // ==========================================
-
-        const map = L.map("map").setView([23.6098732, 72.3549045], 16);
-
-        L.tileLayer(
-            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-            {
-                maxZoom: 19,
-                attribution:
-                    '&copy; OpenStreetMap contributors'
-            }
-        ).addTo(map);
+import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 
-        // Marker
-        let marker = null;
+/* ==========================================
+   FIREBASE CONFIG
+========================================== */
 
-        // Accuracy circle
-        let accuracyCircle = null;
+const firebaseConfig = {
 
-        // First location received
-        let firstLocation = true;
+    apiKey: "AIzaSyAwOW3medoyo_ny9B8NAPvEFmSc_zxGNaM",
+
+    authDomain:
+        "my-gps-tracker-c92b1.firebaseapp.com",
+
+    databaseURL:
+        "https://my-gps-tracker-c92b1-default-rtdb.firebaseio.com",
+
+    projectId:
+        "my-gps-tracker-c92b1",
+
+    storageBucket:
+        "my-gps-tracker-c92b1.firebasestorage.app",
+
+    messagingSenderId:
+        "1055674375924",
+
+    appId:
+        "1:1055674375924:web:76b016cda58cc8f69d48a1"
+
+};
 
 
-        // ==========================================
-        // FIREBASE LIVE LOCATION
-        // ==========================================
+/* ==========================================
+   INITIALIZE FIREBASE
+========================================== */
 
-        const trackerRef = ref(
+const app = initializeApp(firebaseConfig);
+
+const database = getDatabase(app);
+
+const auth = getAuth(app);
+
+const provider = new GoogleAuthProvider();
+
+
+/* ==========================================
+   LOGIN
+========================================== */
+
+const googleLogin =
+    document.getElementById("googleLogin");
+
+googleLogin.addEventListener(
+    "click",
+    async () => {
+
+        try {
+
+            await signInWithPopup(
+                auth,
+                provider
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            document.getElementById(
+                "loginError"
+            ).textContent =
+                "Login failed: " + error.message;
+        }
+
+    }
+);
+
+
+/* ==========================================
+   LOGOUT
+========================================== */
+
+document.getElementById(
+    "logoutButton"
+).addEventListener(
+    "click",
+    async () => {
+
+        await signOut(auth);
+
+    }
+);
+
+
+/* ==========================================
+   AUTH STATE
+========================================== */
+
+onAuthStateChanged(
+    auth,
+    (user) => {
+
+        if (user) {
+
+            document.getElementById(
+                "loginScreen"
+            ).style.display = "none";
+
+            document.getElementById(
+                "mapScreen"
+            ).style.display = "block";
+
+            document.getElementById(
+                "userEmail"
+            ).textContent =
+                user.email;
+
+            startMap();
+
+        } else {
+
+            document.getElementById(
+                "loginScreen"
+            ).style.display = "flex";
+
+            document.getElementById(
+                "mapScreen"
+            ).style.display = "none";
+        }
+
+    }
+);
+
+
+/* ==========================================
+   MAP
+========================================== */
+
+let map = null;
+
+let marker = null;
+
+let accuracyCircle = null;
+
+let firstLocation = true;
+
+let firebaseListenerStarted = false;
+
+
+function startMap() {
+
+    if (map) {
+
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 300);
+
+        return;
+    }
+
+
+    map = L.map("map")
+        .setView(
+            [23.6098732, 72.3549045],
+            16
+        );
+
+
+    L.tileLayer(
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            maxZoom: 19,
+            attribution:
+                "&copy; OpenStreetMap contributors"
+        }
+    ).addTo(map);
+
+
+    startFirebaseLocation();
+
+}
+
+
+/* ==========================================
+   FIREBASE LIVE LOCATION
+========================================== */
+
+function startFirebaseLocation() {
+
+    if (firebaseListenerStarted) {
+        return;
+    }
+
+    firebaseListenerStarted = true;
+
+
+    const trackerRef =
+        ref(
             database,
             "trackers/vivo1906"
         );
 
 
-        onValue(
-            trackerRef,
-            (snapshot) => {
+    onValue(
+        trackerRef,
+        (snapshot) => {
 
-                const data = snapshot.val();
-
-                if (!data) {
-                    document.getElementById("connectionStatus").textContent =
-                        "NO DATA";
-
-                    return;
-                }
+            const data =
+                snapshot.val();
 
 
-                const latitude = Number(data.latitude);
-                const longitude = Number(data.longitude);
-                const accuracy = Number(data.accuracy || 0);
-                const speedMs = Number(data.speed || 0);
-                const altitude = Number(data.altitude || 0);
-                const timestamp = Number(data.timestamp || 0);
+            if (!data) {
+
+                document.getElementById(
+                    "connectionStatus"
+                ).textContent =
+                    "NO DATA";
+
+                return;
+            }
 
 
-                // ======================================
-                // UPDATE TEXT
-                // ======================================
+            const latitude =
+                Number(data.latitude);
 
-                document.getElementById("latitude").textContent =
-                    latitude.toFixed(6);
+            const longitude =
+                Number(data.longitude);
 
-                document.getElementById("longitude").textContent =
-                    longitude.toFixed(6);
+            const accuracy =
+                Number(data.accuracy || 0);
 
-                document.getElementById("accuracy").textContent =
-                    accuracy.toFixed(1) + " m";
+            const speedMs =
+                Number(data.speed || 0);
 
-                // m/s -> km/h
-                const speedKmh = speedMs * 3.6;
+            const altitude =
+                Number(data.altitude || 0);
 
-                document.getElementById("speed").textContent =
-                    speedKmh.toFixed(1) + " km/h";
-
-                document.getElementById("altitude").textContent =
-                    altitude.toFixed(1) + " m";
+            const timestamp =
+                Number(data.timestamp || 0);
 
 
-                // ======================================
-                // LAST UPDATE
-                // ======================================
+            /* ==============================
+               DASHBOARD
+            ============================== */
 
-                const updateTime = new Date(timestamp);
-
-                document.getElementById("lastUpdate").textContent =
-                    updateTime.toLocaleString();
-
-
-                // ======================================
-                // ONLINE / OFFLINE
-                // ======================================
-
-                const age = Date.now() - timestamp;
-
-                const statusElement =
-                    document.getElementById("connectionStatus");
-
-                if (age < 90000) {
-
-                    statusElement.textContent = "● ONLINE";
-                    statusElement.className = "online";
-
-                } else {
-
-                    statusElement.textContent = "● OFFLINE";
-                    statusElement.className = "offline";
-                }
+            document.getElementById(
+                "latitude"
+            ).textContent =
+                latitude.toFixed(6);
 
 
-                // ======================================
-                // UPDATE MARKER
-                // ======================================
+            document.getElementById(
+                "longitude"
+            ).textContent =
+                longitude.toFixed(6);
 
-                if (!marker) {
 
-                    marker = L.marker([
-                        latitude,
-                        longitude
-                    ])
+            document.getElementById(
+                "accuracy"
+            ).textContent =
+                accuracy.toFixed(1) + " m";
+
+
+            const speedKmh =
+                speedMs * 3.6;
+
+
+            document.getElementById(
+                "speed"
+            ).textContent =
+                speedKmh.toFixed(1) +
+                " km/h";
+
+
+            document.getElementById(
+                "altitude"
+            ).textContent =
+                altitude.toFixed(1) +
+                " m";
+
+
+            document.getElementById(
+                "lastUpdate"
+            ).textContent =
+                new Date(timestamp)
+                .toLocaleString();
+
+
+            /* ==============================
+               ONLINE STATUS
+            ============================== */
+
+            const age =
+                Date.now() - timestamp;
+
+
+            const statusElement =
+                document.getElementById(
+                    "connectionStatus"
+                );
+
+
+            if (age < 90000) {
+
+                statusElement.textContent =
+                    "● ONLINE";
+
+                statusElement.className =
+                    "online";
+
+            } else {
+
+                statusElement.textContent =
+                    "● OFFLINE";
+
+                statusElement.className =
+                    "offline";
+            }
+
+
+            /* ==============================
+               MARKER
+            ============================== */
+
+            if (!marker) {
+
+                marker =
+                    L.marker(
+                        [
+                            latitude,
+                            longitude
+                        ]
+                    )
                     .addTo(map);
 
-                    marker.bindPopup(
-                        "<b>📍 Vivo 1906</b><br>" +
-                        "GPS Tracker"
-                    );
 
+                marker.bindPopup(
+                    "<b>📍 Vivo 1906</b><br>" +
+                    "GPS Tracker"
+                );
 
-                } else {
+            } else {
 
-                    marker.setLatLng([
+                marker.setLatLng(
+                    [
                         latitude,
                         longitude
-                    ]);
-                }
+                    ]
+                );
+
+            }
 
 
-                // ======================================
-                // ACCURACY CIRCLE
-                // ======================================
+            /* ==============================
+               ACCURACY CIRCLE
+            ============================== */
 
-                if (!accuracyCircle) {
+            if (!accuracyCircle) {
 
-                    accuracyCircle = L.circle(
-                        [latitude, longitude],
+                accuracyCircle =
+                    L.circle(
+                        [
+                            latitude,
+                            longitude
+                        ],
                         {
                             radius: accuracy,
                             weight: 2,
                             fillOpacity: 0.15
                         }
-                    ).addTo(map);
+                    )
+                    .addTo(map);
 
-                } else {
+            } else {
 
-                    accuracyCircle.setLatLng([
+                accuracyCircle.setLatLng(
+                    [
                         latitude,
                         longitude
-                    ]);
-
-                    accuracyCircle.setRadius(
-                        accuracy
-                    );
-                }
-
-
-                // ======================================
-                // CENTER MAP ON FIRST LOCATION
-                // ======================================
-
-                if (firstLocation) {
-
-                    map.setView(
-                        [latitude, longitude],
-                        17
-                    );
-
-                    firstLocation = false;
-                }
-
-            },
-
-            (error) => {
-
-                console.error(
-                    "Firebase error:",
-                    error
+                    ]
                 );
 
-                document.getElementById(
-                    "connectionStatus"
-                ).textContent = "ERROR";
-            }
-        );
+                accuracyCircle.setRadius(
+                    accuracy
+                );
 
-    </script>
+            }
+
+
+            /* ==============================
+               CENTER MAP
+            ============================== */
+
+            if (firstLocation) {
+
+                map.setView(
+                    [
+                        latitude,
+                        longitude
+                    ],
+                    17
+                );
+
+                firstLocation = false;
+            }
+
+        },
+
+        (error) => {
+
+            console.error(
+                "Firebase error:",
+                error
+            );
+
+            document.getElementById(
+                "connectionStatus"
+            ).textContent =
+                "DATABASE ERROR";
+        }
+    );
+
+}
+
+</script>
 
 </body>
 </html>
